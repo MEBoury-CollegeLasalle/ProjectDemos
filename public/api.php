@@ -9,20 +9,8 @@ declare(strict_types=1);
  * (c) Copyright 2024 Marc-Eric Boury 
  */
 
-require_once "../private/helpers/init.php";
+require_once __DIR__."/../private/helpers/movies_db_functions.php";
 
-
-function DoDisplayText(string $textToDisplay) : void {
-    echo $textToDisplay;
-    http_response_code(200);
-    exit();
-}
-
-function DoDisplayTextRed(string $textToDisplay) : void {
-    echo '<span style="color: red;">' . $textToDisplay . "</span>";
-    http_response_code(200);
-    exit();
-}
 
 
 try {
@@ -30,29 +18,42 @@ try {
     if (isset($_REQUEST["action"])) {
         
         switch ($_REQUEST["action"]) {
-            case "doDisplayText":
-                if (!isset($_REQUEST["textToDisplay"])) {
-                    http_response_code(400);
-                    exit();
+            case "display_movie":
+                if (empty($_REQUEST["movieId"]) || !is_numeric($_REQUEST["movieId"])) {
+                    throw new Exception("bad request parameters.");
                 }
-                DoDisplayText($_REQUEST["textToDisplay"]);
+                $movie_to_display = get_movie_by_id((int) $_REQUEST["movieId"]);
+                include "movies.php";
                 break;
-            case "doDisplayTextRed":
-                if (!isset($_REQUEST["textToDisplay"])) {
-                    http_response_code(400);
-                    exit();
+            case "create_movie":
+                if (empty($_REQUEST["title"]) || empty($_REQUEST["year"])) {
+                    throw new Exception("bad request parameters.");
                 }
-                DoDisplayTextRed($_REQUEST["textToDisplay"]);
+                $duration_h = empty($_REQUEST["duration_hours"]) ? null : (int) $_REQUEST["duration_hours"];
+                $duration_m = empty($_REQUEST["duration_minutes"]) ? null : (int) $_REQUEST["duration_minutes"];
+                $budget = empty($_REQUEST["budget"]) ? null : (float) $_REQUEST["budget"];
+                
+                $movie_to_display = create_new_movie($_REQUEST["title"], (int) $_REQUEST["year"], $duration_h, $duration_m, $budget);
+                include "movies.php";
                 break;
-            case "testStatusCode":
-                if (!isset($_REQUEST["statusCode"]) || !is_numeric($_REQUEST["statusCode"])) {
-                    http_response_code(400);
-                    exit();
+            case "update_movie":
+                if (empty($_REQUEST["id"]) || !is_numeric($_REQUEST["id"]) || empty($_REQUEST["title"]) || empty($_REQUEST["year"]) || !is_numeric($_REQUEST["year"])) {
+                    throw new Exception("bad request parameters.");
                 }
-                http_response_code($_REQUEST["statusCode"] + 0);
-                exit();
-            case "testException":
-                throw new Exception("This is a test exception!");
+                $duration_h = empty($_REQUEST["duration_hours"]) ? null : (int) $_REQUEST["duration_hours"];
+                $duration_m = empty($_REQUEST["duration_minutes"]) ? null : (int) $_REQUEST["duration_minutes"];
+                $budget = empty($_REQUEST["budget"]) ? null : (float) $_REQUEST["budget"];
+                
+                $movie_to_display = update_movie((int) $_REQUEST["id"], $_REQUEST["title"], (int) $_REQUEST["year"], $duration_h, $duration_m, $budget);
+                include "movies.php";
+                break;
+            case "delete_movie":
+                if (empty($_REQUEST["id"]) || !is_numeric($_REQUEST["id"])) {
+                    throw new Exception("bad request parameters.");
+                }
+                delete_movie((int) $_REQUEST["id"]);
+                include "movies.php";
+                break;
             default:
                 // TODO unsupported action error
         }
