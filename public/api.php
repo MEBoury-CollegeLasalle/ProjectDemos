@@ -59,13 +59,24 @@ try {
                 break;
                 
             case "display_movie_async":
-                if (empty($_REQUEST["movieId"]) || !is_numeric($_REQUEST["movieId"])) {
-                    throw new Exception("bad request parameters.");
+                try {
+                    if (empty($_REQUEST["movieId"]) || !is_numeric($_REQUEST["movieId"])) {
+                        throw new Exception("bad request parameters.");
+                    }
+                    $movie_to_display = get_movie_by_id((int) $_REQUEST["movieId"]);
+                    $output = json_encode($movie_to_display, JSON_PRETTY_PRINT);
+                    header("Content-type: application/json;");
+                    echo $output;
+                    
+                } catch (Exception $poodoo) {
+                    http_response_code(500);
+                    header("Content-type: application/json;");
+                    echo json_encode([
+                        "errorMessage" => $poodoo->getMessage(),
+                        "stacktrace" => $poodoo->getTraceAsString()
+                                     ],
+                                     JSON_PRETTY_PRINT);
                 }
-                $movie_to_display = get_movie_by_id((int) $_REQUEST["movieId"]);
-                $output = json_encode($movie_to_display, JSON_PRETTY_PRINT);
-                header("Content-type: application/json;");
-                echo $output;
                 break;
             
             case "create_movie_async":

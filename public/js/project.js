@@ -30,6 +30,10 @@ function display_movie_ajax() {
         $("#movieHoursField2").val(data.duration_hours);
         $("#movieMinutesField2").val(data.duration_minutes);
         $("#movieBudgetField2").val(data.budget);
+    }).fail(function(jqXHR, textStatus, code) {
+        console.warn(jqXHR);
+        console.warn(textStatus);
+        console.warn(code);
     });
     
 }
